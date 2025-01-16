@@ -6,7 +6,9 @@ import Home from './pages/Home';
 import PlayOnline from './pages/PlayOnline';
 import { Chess, Color } from 'chess.js';
 
-const ws = new WebSocket("ws://localhost:4000")
+const Backend_Url = import.meta.env.VITE_BACKEND_URL
+
+const ws = new WebSocket(Backend_Url)
 
 function App() {
 
