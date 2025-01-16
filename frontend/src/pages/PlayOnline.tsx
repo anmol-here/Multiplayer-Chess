@@ -15,7 +15,7 @@ interface PropType {
     board: BoardType,
     setBoard: (sqaure: BoardType) => void,
     chess: Chess,
-    color: Color
+    color: Color | undefined
 }
 
 const PlayOnline: React.FC<PropType> = ({ socket, board, setBoard, chess, color }) => {
