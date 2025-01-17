@@ -87,7 +87,9 @@ const PlayOnline: React.FC<PropType> = ({ socket, board, setBoard, chess, color 
                                             w-24 h-24 flex items-center justify-center text-3xl font-semibold text-black
                                         `}
                                     >
-                                        <img className=" relative z-10" src={`/${square?.color}${square?.type}.png`} alt="" />
+                                        {square?.color && square?.type && (
+                                            <img className="relative z-10" src={`/${square.color}${square.type}.png`} alt="" />
+                                        )}
                                         {possibleMoves.includes(squareName) && (
                                             <div className=" absolute z-0">X</div>
                                         )}
