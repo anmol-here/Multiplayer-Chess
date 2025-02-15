@@ -2,19 +2,20 @@ import { WebSocketServer } from "ws"
 import express from "express";
 const { GameManager } = require('./GameManager');
 import http from 'http';
+import cors from "cors"
 
 const app = express();
-
+app.use(cors());
 const server = new http.Server(app);
 
 const wss = new WebSocketServer({ server })
 const gameManager = new GameManager();
 
-app.get("/", (req:Request, res:any) => {
+app.get("/", (req: Request, res: any) => {
     return res.send('Hello World')
 })
 
-wss.on("connection", ws => { 
+wss.on("connection", ws => {
 
     console.log("Connected")
 
