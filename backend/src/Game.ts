@@ -2,32 +2,67 @@ import {Chess} from "chess.js"
 import { messageType } from "./message";
 
 export class Game {
-    private id: number;
-    private name: string;
     Player1: WebSocket;
     Player2: WebSocket;
-    private board: string[][];
-    private moves: string[];
-    private startTime: Date;
+    player1Time: number;
+    player2Time: number;
     private chess: Chess;
     private movesCount: number;
+    chats:Map<WebSocket , string>;
 
 
     constructor(player1: WebSocket, player2: WebSocket) {
-        this.id = 0;
-        this.name = '';
         this.Player1 = player1;
         this.Player2 = player2;
-        this.board = [];
-        this.moves = [];
-        this.startTime = new Date();
+        this.player1Time = 600;
+        this.player2Time = 600;
         this.chess = new Chess();
         this.movesCount = 0;
+        this.chats = new Map<WebSocket , string>();
 
         console.log("Initializing the game")
 
         player1.send(JSON.stringify({type: messageType.COLOR , color:'w'}))
         player2.send(JSON.stringify({type: messageType.COLOR , color:'b'}))
+
+        setInterval(() => {
+            if (this.movesCount % 2 === 0) {
+                if(this.player1Time <= 0) {
+                    this.Player1.send(JSON.stringify({
+                        type: messageType.GAME_OVER,
+                        reason:messageType.TIME_OUT,
+                        payload: { winner: this.chess.turn() === 'w' ? 'b' : 'w' }
+                    }));
+                    this.Player2.send(JSON.stringify({
+                        type: messageType.GAME_OVER,
+                        reason:messageType.TIME_OUT,
+                        payload: { winner: this.chess.turn() === 'w' ? 'b' : 'w' }
+                    }));
+                }
+                else{
+                    this.player1Time--;
+                    this.Player1.send(JSON.stringify({type: messageType.TIMER , timer:this.player1Time}))
+                    this.Player2.send(JSON.stringify({type: messageType.OPPONENT_TIMER , timer:this.player1Time}))
+                }
+            }
+            else {
+                if(this.player2Time <= 0) {
+                    this.Player1.send(JSON.stringify({
+                        type: 'timeout',
+                        payload: { winner: this.chess.turn() === 'w' ? 'b' : 'w' }
+                    }));
+                    this.Player2.send(JSON.stringify({
+                        type: 'timeout',
+                        payload: { winner: this.chess.turn() === 'w' ? 'b' : 'w' }
+                    }));
+                }
+                else{
+                    this.player2Time--;
+                    this.Player2.send(JSON.stringify({type: messageType.TIMER , timer:this.player2Time}))
+                    this.Player1.send(JSON.stringify({type: messageType.OPPONENT_TIMER , timer:this.player2Time}))
+                }
+            }
+        }, 1000)
     }
 
     makeMove(from: string, to: string, socket: WebSocket) {
@@ -44,7 +79,6 @@ export class Game {
         if (this.movesCount % 2 === 1 && socket !== this.Player2) { 
             return;
         }
-        console.log("I reach here")
 
         try {
 
@@ -62,16 +96,15 @@ export class Game {
         if (this.chess.isGameOver()) {
             
             this.Player1.send(JSON.stringify({
-                type: 'game_over',
-                payload: { winner: this.chess.turn() === 'w' ? 'black' : 'white' }
+                type: messageType.GAME_OVER,
+                payload: { winner: this.chess.turn() === 'w' ? 'b' : 'w' }
             }));
             this.Player2.send(JSON.stringify({
-                type: 'game_over',
-                payload: { winner: this.chess.turn() === 'w' ? 'black' : 'white' }
+                type: messageType.GAME_OVER,
+                payload: { winner: this.chess.turn() === 'w' ? 'b' : 'w' }
             }));
         }
         else {
-            console.log(this.movesCount)
             if (this.movesCount % 2 === 0) {
 
                 this.Player1.send(JSON.stringify({
@@ -86,6 +119,17 @@ export class Game {
                     move: {from ,to} 
                 }));
             }
+        }
+    }
+
+    sendChat(socket:WebSocket , chat:string){
+        this.chats.set(socket , chat);
+        console.log(chat)
+        if(socket === this.Player1){
+            this.Player2.send(JSON.stringify({type:messageType.CHAT , chat}))
+        }
+        else{
+            this.Player1.send(JSON.stringify({type:messageType.CHAT , chat}))
         }
     }
 }

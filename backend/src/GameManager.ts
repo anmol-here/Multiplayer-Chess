@@ -6,7 +6,8 @@ interface GameMessage {
     move: {   
         from?: string | undefined;
         to?: string | undefined;
-    }
+    };
+    chat:string;
 }
 
 export class GameManager { 
@@ -45,7 +46,6 @@ export class GameManager {
                 if (this.pendingUser) {
                     const game = new Game(this.pendingUser, socket);
                     this.games.push(game);
-                    // console.log(this.games)
                     this.pendingUser = null;
                 }
                 else {
@@ -57,6 +57,12 @@ export class GameManager {
                 const game = this.games.find(g => g.Player1 === socket || g.Player2 === socket);
                 if (game && message.move && message.move.from && message.move.to) {
                     game.makeMove(message.move.from , message.move.to , socket);
+                }
+            }
+            else if(message.type === messageType.CHAT){
+                const game = this.games.find(g => g.Player1 === socket || g.Player2 === socket);
+                if(game){
+                    game.sendChat(socket , message.chat as string);
                 }
             }
         }
