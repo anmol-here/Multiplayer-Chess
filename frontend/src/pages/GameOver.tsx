@@ -7,7 +7,7 @@ interface GameOverProps {
     color: Color | undefined;
 }
 
-const GameOver:React.FC<GameOverProps> = ({reason , isWinner , color}) => {
+const GameOver:React.FC<GameOverProps> = ({isWinner , color}) => {
     return(
         <div className=" w-screen h-screen z-10 absolute flex items-center justify-center backdrop-blur-sm ">
             <div className=" flex flex-col items-center justify-center bg-red-200 w-1/4 h-1/2 p-10 rounded-md">
